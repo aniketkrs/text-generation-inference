@@ -934,7 +934,7 @@ pub(crate) struct ChatRequest {
     /// Options for streaming response. Only set this when you set stream: true.
     #[serde(default)]
     #[schema(nullable = true, example = "null")]
-    pub stream_options: StreamOptions,
+    pub stream_options: Option<StreamOptions>,
 }
 
 impl ChatRequest {
@@ -1743,9 +1743,9 @@ mod tests {
 
         assert!(matches!(
             request.stream_options,
-            StreamOptions {
+            Some(StreamOptions {
                 include_usage: true
-            }
+            })
         ));
 
         let json = json!({
@@ -1759,10 +1759,23 @@ mod tests {
 
         assert!(matches!(
             request.stream_options,
-            StreamOptions {
+            Some(StreamOptions {
                 include_usage: false
-            }
+            })
         ));
+
+        // An explicit null is valid per the OpenAI API and must behave like an omitted field
+        let json = json!({
+            "model": "",
+            "stream_options": null,
+            "messages": [{
+                "role": "user",
+                "content": "Hello"
+            }]
+        });
+        let request: ChatRequest = serde_json::from_str(json.to_string().as_str()).unwrap();
+
+        assert!(matches!(request.stream_options, None));
     }
 
     #[test]
