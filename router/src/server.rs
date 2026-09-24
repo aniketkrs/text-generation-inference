@@ -1211,7 +1211,7 @@ pub(crate) async fn chat_completions(
 
         let response_stream = async_stream::stream! {
             let mut response_stream = Box::pin(response_stream);
-            let mut state = ChatState::new(using_tools, stream_options.clone(), system_fingerprint.clone(), model_id.clone(), logprobs, id.clone());
+            let mut state = ChatState::new(using_tools, stream_options.clone().unwrap_or_default(), system_fingerprint.clone(), model_id.clone(), logprobs, id.clone());
             while let Some(result) = response_stream.next().await {
                 match result{
                 Ok(stream_token) => {
@@ -1225,7 +1225,7 @@ pub(crate) async fn chat_completions(
                             assert!(!using_tools);
                             let (_headers, response_stream2) =
                                 generate_stream_internal(infer.clone(), compute_type.clone(), Json(generate_request), span.clone()).await;
-                            state = ChatState::new(using_tools, stream_options.clone(), system_fingerprint.clone(), model_id.clone(), logprobs, id.clone());
+                            state = ChatState::new(using_tools, stream_options.clone().unwrap_or_default(), system_fingerprint.clone(), model_id.clone(), logprobs, id.clone());
                             response_stream = Box::pin(response_stream2);
                         }
                         ChatEvent::Events(events) => {
